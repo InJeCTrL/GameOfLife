@@ -143,7 +143,7 @@ INT CalcCellMap(void)
 	HANDLE hThread[128] = { 0 };//线程句柄列表
 	INT numThread;//预启用线程数
 	INT i = 0;
-	PartInfo PtI;//细胞地图分P信息
+	PartInfo PtI[128] = { {0, 0} };//细胞地图分P信息
 
 	memcpy(tCellMap, CellMap, MAP_X * MAP_Y * sizeof(INT));
 	//允许多线程
@@ -151,15 +151,17 @@ INT CalcCellMap(void)
 	{
 		GetSystemInfo(&si);
 		numThread = si.dwNumberOfProcessors;//获取CPU核心数
-		PtI.Y_End = -1;
 		while (i < numThread)
 		{
-			PtI.Y_Begin = PtI.Y_End + 1;
-			if (i == numThread - 1)
-				PtI.Y_End = MAP_Y - 1;
+			if (!i)
+				PtI[i].Y_Begin = 0;
 			else
-				PtI.Y_End += MAP_Y / numThread - 1;
-			hThread[i++] = CreateThread(NULL, 0, MT_DoCalc, (LPVOID)(&PtI), 0, NULL);
+				PtI[i].Y_Begin = PtI[i-1].Y_End + 1;
+			if (i == numThread - 1)
+				PtI[i].Y_End = MAP_Y - 1;
+			else
+				PtI[i].Y_End = PtI[i].Y_Begin + MAP_Y / numThread - 1;
+			hThread[i++] = CreateThread(NULL, 0, MT_DoCalc, (LPVOID)(&(PtI[i])), 0, NULL);
 		}
 		WaitForMultipleObjects(numThread, hThread, TRUE, INFINITE);//等待各计算线程退出
 		i--;
@@ -247,7 +249,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLin
 	ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
 	ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 	RegisterClassEx(&WC);
-	hwnd = CreateWindow(L"WND", L"生命游戏", WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX, (ScreenWidth - thisWidth) / 2, (ScreenHeight - thisHeight) / 2, thisWidth + 2 * BLOCK_SIZE, thisHeight + 4 * BLOCK_SIZE, NULL, 0, 0, 0);
+	hwnd = CreateWindow(L"WND", L"生命游戏", WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX, (ScreenWidth - thisWidth) / 2, (ScreenHeight - thisHeight) / 2, thisWidth + 5 * BLOCK_SIZE, thisHeight + 5 * BLOCK_SIZE, NULL, 0, 0, 0);
 	hDC = GetDC(hwnd);//获取绘图DC
 	Brush_Live = CreateSolidBrush(BLOCK_COLOR);
 	Brush_Death = CreateSolidBrush(RGB(255, 255, 255));
