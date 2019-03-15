@@ -1,0 +1,9 @@
+﻿  t.c
+c:\users\administrator\desktop\test\gameoflife\gameoflife\t.c(183): warning C4101: “i”: 未引用的局部变量
+c:\users\administrator\desktop\test\gameoflife\gameoflife\t.c(227): warning C4028: 形参 3 与声明不同
+c:\users\administrator\desktop\test\gameoflife\gameoflife\t.c(262): warning C4133: “函数”: 从“HBRUSH”到“HDC”的类型不兼容
+c:\users\administrator\desktop\test\gameoflife\gameoflife\t.c(263): warning C4133: “函数”: 从“HBRUSH”到“HDC”的类型不兼容
+  正在生成代码
+  All 9 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  已完成代码的生成
+  GameOfLife.vcxproj -> C:\Users\Administrator\Desktop\Test\GameOfLife\Release\GameOfLife.exe
