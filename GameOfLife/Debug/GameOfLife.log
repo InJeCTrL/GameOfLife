@@ -1,6 +1,7 @@
 ﻿  t.c
-d:\code trunk\gameoflife\gameoflife\t.c(206): warning C4101: “i”: 未引用的局部变量
-d:\code trunk\gameoflife\gameoflife\t.c(250): warning C4028: 形参 3 与声明不同
-d:\code trunk\gameoflife\gameoflife\t.c(305): warning C4133: “函数”: 从“HBRUSH”到“HDC”的类型不兼容
-d:\code trunk\gameoflife\gameoflife\t.c(306): warning C4133: “函数”: 从“HBRUSH”到“HDC”的类型不兼容
+d:\code trunk\gameoflife\gameoflife\t.c(63): warning C4101: “t”: 未引用的局部变量
+d:\code trunk\gameoflife\gameoflife\t.c(235): warning C4101: “i”: 未引用的局部变量
+d:\code trunk\gameoflife\gameoflife\t.c(279): warning C4028: 形参 3 与声明不同
+d:\code trunk\gameoflife\gameoflife\t.c(334): warning C4133: “函数”: 从“HBRUSH”到“HDC”的类型不兼容
+d:\code trunk\gameoflife\gameoflife\t.c(335): warning C4133: “函数”: 从“HBRUSH”到“HDC”的类型不兼容
   GameOfLife.vcxproj -> D:\Code Trunk\GameOfLife\Debug\GameOfLife.exe

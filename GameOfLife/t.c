@@ -24,9 +24,8 @@ typedef struct PartInfo
 	INT Y_End;//结束行
 }PartInfo;//细胞地图分P信息
 
-INT lastCellMap[MAP_Y][MAP_X] = { {0} };//上一次细胞地图
-INT CellMap[MAP_Y][MAP_X] = { {0} };//细胞地图
-INT tCellMap[MAP_Y][MAP_X] = { {0} };//临时细胞地图
+
+INT CellMap[MAP_Y][MAP_X] = { {0} };//细胞地图（最低三位：上一次状态、当前状态、临时运算状态）
 
 HDC hDC;//绘图DC
 INT Initialized = 0;//已初始化
@@ -61,7 +60,7 @@ INT DrawMapLine(HDC hDC)
 //更新细胞地图显示
 INT UpdateCellMap(HDC hDC)
 {
-	INT i, j;
+	INT i, j, t;
 	INT POS_X = 0, POS_Y = 0;//横纵坐标
 	RECT rct;//矩形方块
 	
@@ -74,10 +73,10 @@ INT UpdateCellMap(HDC hDC)
 			rct.bottom = rct.top + BLOCK_SIZE;
 			rct.right = rct.left + BLOCK_SIZE;
 			//初始化时绘制背景 或 细胞状态发生变化再重画
-			if (!Initialized || (lastCellMap[i][j] != CellMap[i][j]))
+			if (!Initialized || !(CellMap[i][j] & (CellMap[i][j] << 1) & 4))
 			{
 				//填充活细胞
-				if (CellMap[i][j])
+				if (CellMap[i][j] & 2)
 				{
 					FillRect(hDC, &rct, Brush_Live);
 				}
@@ -89,7 +88,17 @@ INT UpdateCellMap(HDC hDC)
 			}
 		}
 	}
-	memcpy(lastCellMap, CellMap, MAP_X * MAP_Y * sizeof(INT));
+	//更新到上一次状态
+	for (i = 0; i < MAP_Y; i++)
+	{
+		for (j = 0; j < MAP_X; j++)
+		{
+			if (CellMap[i][j] & 2)
+				CellMap[i][j] |= 4;
+			else
+				CellMap[i][j] &= CellMap[i][j] & 3;
+		}
+	}
 
 	return 0;
 }
@@ -108,7 +117,7 @@ INT SetCellMap(INT mouse_x, INT mouse_y)
 {
 	POINT pointCell = GetCellPos(mouse_x, mouse_y);//获取鼠标指向的细胞位置
 
-	CellMap[pointCell.y][pointCell.x] ^= 1;//细胞状态取反
+	CellMap[pointCell.y][pointCell.x] ^= 2;//细胞状态取反
 
 	return 0;
 }
@@ -128,13 +137,13 @@ INT DoCalcCellMap(INT Y_Begin, INT Y_End)
 					if (ti < 0 || tj < 0 || ti >= MAP_Y || tj >= MAP_X || //周围不足八个邻居
 						(ti == i && tj == j))//样点重合
 						continue;
-					s += CellMap[ti][tj];
+					s += (CellMap[ti][tj] & 2) >> 1;
 				}
 			}
 			if (s == Live)
-				tCellMap[i][j] = 1;//细胞生存
+				CellMap[i][j] |= 1;//细胞生存
 			else if (s != Still)
-				tCellMap[i][j] = 0;//细胞死亡
+				CellMap[i][j] >>= 1, CellMap[i][j] <<= 1;//细胞死亡
 			s = 0;
 		}
 	}
@@ -171,9 +180,19 @@ DWORD WINAPI MT_Do(LPVOID lpParam)
 //预计算细胞地图
 INT CalcCellMap(void)
 {
-	INT i = 0;
+	INT i, j;
 
-	memcpy(tCellMap, CellMap, MAP_X * MAP_Y * sizeof(INT));
+	//临时运算状态赋值
+	for (i = 0; i < MAP_Y; i++)
+	{
+		for (j = 0; j < MAP_X; j++)
+		{
+			if (CellMap[i][j] & 2)
+				CellMap[i][j] |= 1;//赋值
+			else
+				CellMap[i][j] &= 6;
+		}
+	}
 	//允许多线程
 	if (MT_ON)
 	{
@@ -196,7 +215,17 @@ INT CalcCellMap(void)
 	{
 		DoCalcCellMap(0,MAP_Y - 1);//全图计算
 	}
-	memcpy(CellMap, tCellMap, MAP_X * MAP_Y * sizeof(INT));
+	//当前状态赋值
+	for (i = 0; i < MAP_Y; i++)
+	{
+		for (j = 0; j < MAP_X; j++)
+		{
+			if (CellMap[i][j] & 1)
+				CellMap[i][j] |= 2;
+			else
+				CellMap[i][j] &= CellMap[i][j] & 5;
+		}
+	}
 
 	return 0;
 }
